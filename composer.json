@@ -10,6 +10,12 @@
         "phpunit/phpunit": "*",
         "cakephp/cakephp-codesniffer": "2.*"
     },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/jdominguezpaz/notifier"
+        }
+    ],    
     "autoload": {
         "psr-4": {
             "Bakkerij\\Notifier\\": "src"
