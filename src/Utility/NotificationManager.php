@@ -1,41 +1,31 @@
 <?php
-/**
- * Bakkerij (https://github.com/bakkerij)
- * Copyright (c) https://github.com/bakkerij
- *
- * Licensed under The MIT License
- * For full copyright and license information, please see the LICENSE.txt
- * Redistributions of files must retain the above copyright notice.
- *
- * @copyright     Copyright (c) https://github.com/bakkerij
- * @link          https://github.com/bakkerij Bakkerij Project
- * @since         1.0
- * @license       http://www.opensource.org/licenses/mit-license.php MIT License
- */
+declare(strict_types=1);
+
 namespace Bakkerij\Notifier\Utility;
 
 use Cake\Core\Configure;
-use Cake\Core\Plugin;
-use Cake\ORM\TableRegistry;
+use Cake\ORM\Locator\LocatorAwareTrait;
 use Cake\Utility\Text;
 
 /**
- * Notifier component
+ * Notifier utility class
  */
 class NotificationManager
 {
-
-    protected static $_generalManager = null;
+    use LocatorAwareTrait;
 
     /**
-     * instance
+     * @var NotificationManager|null
+     */
+    protected static ?NotificationManager $_generalManager = null;
+
+    /**
+     * Instance method for singleton pattern
      *
-     * The singleton class uses the instance() method to return the instance of the NotificationManager.
-     *
-     * @param null $manager Possible different manager. (Helpfull for testing).
+     * @param NotificationManager|null $manager Optional different manager (Helpful for testing).
      * @return NotificationManager
      */
-    public static function instance($manager = null)
+    public static function instance(?NotificationManager $manager = null): NotificationManager
     {
         if ($manager instanceof NotificationManager) {
             static::$_generalManager = $manager;
@@ -47,35 +37,14 @@ class NotificationManager
     }
 
     /**
-     * notify
-     *
      * Sends notifications to specific users.
-     * The first parameter `$data` is an array with multiple options.
-     *
-     * ### Options
-     * - `users` - An array or int with id's of users who will receive a notification.
-     * - `roles` - An array or int with id's of roles which all users ill receive a notification.
-     * - `template` - The template wich will be used.
-     * - `vars` - The variables used in the template.
-     *
-     * ### Example
-     * ```
-     *  NotificationManager::instance()->notify([
-     *      'users' => 1,
-     *      'template' => 'newOrder',
-     *      'vars' => [
-     *          'receiver' => $receiver->name
-     *          'total' => $order->total
-     *      ],
-     *  ]);
-     * ```
      *
      * @param array $data Data with options.
      * @return string The tracking_id to follow the notification.
      */
-    public function notify($data)
+    public function notify(array $data): string
     {
-        $model = TableRegistry::get('Bakkerij/Notifier.Notifications');
+        $model = $this->getTableLocator()->get('Bakkerij/Notifier.Notifications');
 
         $_data = [
             'users' => [],
@@ -93,13 +62,13 @@ class NotificationManager
         }
 
         foreach ((array)$data['users'] as $user) {
-            $entity = $model->newEntity();
-
-            $entity->set('template', $data['template']);
-            $entity->set('tracking_id', $data['tracking_id']);
-            $entity->set('vars', $data['vars']);
-            $entity->set('state', 1);
-            $entity->set('user_id', $user);
+            $entity = $model->newEntity([
+                'template' => $data['template'],
+                'tracking_id' => $data['tracking_id'],
+                'vars' => $data['vars'],
+                'state' => 1,
+                'user_id' => $user
+            ], ['validate' => false]);
 
             $model->save($entity);
         }
@@ -108,69 +77,36 @@ class NotificationManager
     }
 
     /**
-     * addRecipientList
-     *
-     * Method to add a new recipient list.
-     * Recipient lists are used to create presets of users to write notifications to.
-     *
-     * ### Example
-     * ```
-     *  $notificationManager->addRecipientList('administrators', [1,2,3,4]);
-     * ```
-     *
-     * The data will be stored in Cake's Configure: `Notifier.recipientLists.{name}`
+     * Add a new recipient list
      *
      * @param string $name Name of the list.
      * @param array $userIds Array with id's of users.
      * @return void
      */
-    public function addRecipientList($name, $userIds)
+    public function addRecipientList(string $name, array $userIds): void
     {
         Configure::write('Notifier.recipientLists.' . $name, $userIds);
     }
 
     /**
-     * getRecipientList
-     *
-     * Returns a requested recipient list from Cake's Configure.
-     * Will return `null` if the list doesn't exist.
+     * Get a recipient list
      *
      * @param string $name The name of the list.
      * @return array|null
      */
-    public function getRecipientList($name)
+    public function getRecipientList(string $name): ?array
     {
         return Configure::read('Notifier.recipientLists.' . $name);
     }
 
     /**
-     * addTemplate
-     *
-     * Adds a template to the storage.
-     *
-     * ### Variables
-     * Titles and bodies can contain variables. For that the
-     * `Cake\Utilities\Text::insert($string, $data)` is used:
-     * http://book.cakephp.org/3.0/en/core-libraries/text.html#Cake\Utility\Text::insert
-     *
-     * ### Options
-     * - `title` - The title.
-     * - `body` - The body.
-     *
-     * ### Example
-     *
-     * $this->Notifier->addTemplate('newUser', [
-     *  'title' => 'New User: :name',
-     *  'body' => 'The user :email has been registered'
-     * ]);
-     *
-     * This code contains the variables `title` and `body`.
+     * Add a notification template
      *
      * @param string $name Unique name.
      * @param array $options Options.
      * @return void
      */
-    public function addTemplate($name, $options = [])
+    public function addTemplate(string $name, array $options = []): void
     {
         $_options = [
             'title' => 'Notification',
@@ -183,24 +119,21 @@ class NotificationManager
     }
 
     /**
-     * getTemplate
-     *
-     * Returns the requested template.
-     * If the template or type does not exists, `false` will be returned.
+     * Get a template
      *
      * @param string $name Name of the template.
-     * @param string|null $type The type like `title` or `body`. Leave empty to get the whole template.
+     * @param string|null $type The type like `title` or `body`.
      * @return array|string|bool
      */
-    public function getTemplate($name, $type = null)
+    public function getTemplate(string $name, ?string $type = null)
     {
         $templates = Configure::read('Notifier.templates');
 
-        if (array_key_exists($name, $templates)) {
-            if ($type == 'title') {
+        if (isset($templates[$name])) {
+            if ($type === 'title') {
                 return $templates[$name]['title'];
             }
-            if ($type == 'body') {
+            if ($type === 'body') {
                 return $templates[$name]['body'];
             }
             return $templates[$name];
@@ -210,19 +143,17 @@ class NotificationManager
     }
 
     /**
-     * getTrackingId
-     *
-     * Generates a tracking id for a notification.
+     * Generate a tracking id
      *
      * @return string
      */
-    public function getTrackingId()
+    public function getTrackingId(): string
     {
         $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $charactersLength = strlen($characters);
         $trackingId = '';
         for ($i = 0; $i < 10; $i++) {
-            $trackingId .= $characters[rand(0, $charactersLength - 1)];
+            $trackingId .= $characters[random_int(0, $charactersLength - 1)];
         }
         return $trackingId;
     }
