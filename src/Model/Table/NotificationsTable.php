@@ -1,37 +1,21 @@
 <?php
-/**
- * Bakkerij (https://github.com/bakkerij)
- * Copyright (c) https://github.com/bakkerij
- *
- * Licensed under The MIT License
- * For full copyright and license information, please see the LICENSE.txt
- * Redistributions of files must retain the above copyright notice.
- *
- * @copyright     Copyright (c) https://github.com/bakkerij
- * @link          https://github.com/bakkerij Bakkerij Project
- * @since         1.0
- * @license       http://www.opensource.org/licenses/mit-license.php MIT License
- */
+declare(strict_types=1);
+
 namespace Bakkerij\Notifier\Model\Table;
 
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\ORM\Query;
 use Cake\Database\Schema\TableSchemaInterface;
-use Cake\ORM\TableRegistry;
 use Cake\Validation\Validator;
 
-/**
- * Notifications Model
- */
 class NotificationsTable extends Table
 {
-
-    /**.
+    /**
      * Configurations
      * @var array
      */
-    public $config = [];
+    protected array $config = [];
 
     /**
      * Initialize method
@@ -39,11 +23,13 @@ class NotificationsTable extends Table
      * @param array $config The configuration for the Table.
      * @return void
      */
-    public function initialize(array $config)
+    public function initialize(array $config): void
     {
-        $this->table('notifications');
-        $this->displayField('title');
-        $this->primaryKey('id');
+        parent::initialize($config);
+
+        $this->setTable('notifications');
+        $this->setDisplayField('title');
+        $this->setPrimaryKey('id');
         $this->addBehavior('Timestamp');
     }
 
@@ -53,15 +39,15 @@ class NotificationsTable extends Table
      * @param \Cake\Validation\Validator $validator Validator instance.
      * @return \Cake\Validation\Validator
      */
-    public function validationDefault(Validator $validator)
+    public function validationDefault(Validator $validator): Validator
     {
         $validator
-            ->add('id', 'valid', ['rule' => 'numeric'])
-            ->allowEmpty('id', 'create')
-            ->allowEmpty('title')
-            ->allowEmpty('body')
-            ->add('state', 'valid', ['rule' => 'numeric'])
-            ->allowEmpty('state');
+            ->integer('id')
+            ->allowEmptyString('id', null, 'create')
+            ->allowEmptyString('title')
+            ->allowEmptyString('body')
+            ->integer('state')
+            ->allowEmptyString('state');
 
         return $validator;
     }
