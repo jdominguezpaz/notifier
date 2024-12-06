@@ -1,17 +1,6 @@
 <?php
-/**
- * Bakkerij (https://github.com/bakkerij)
- * Copyright (c) https://github.com/bakkerij
- *
- * Licensed under The MIT License
- * For full copyright and license information, please see the LICENSE.txt
- * Redistributions of files must retain the above copyright notice.
- *
- * @copyright     Copyright (c) https://github.com/bakkerij
- * @link          https://github.com/bakkerij Bakkerij Project
- * @since         1.0
- * @license       http://www.opensource.org/licenses/mit-license.php MIT License
- */
+declare(strict_types=1);
+
 namespace Bakkerij\Notifier\Model\Entity;
 
 use Cake\Core\Configure;
@@ -23,11 +12,10 @@ use Cake\Utility\Text;
  */
 class Notification extends Entity
 {
-
     /**
      * Fields that can be mass assigned using newEntity() or patchEntity().
      *
-     * @var array
+     * @var array<string, bool>
      */
     protected $_accessible = [
         'template' => true,
@@ -39,14 +27,19 @@ class Notification extends Entity
     ];
 
     /**
-     * _getVars
+     * Virtual fields
      *
+     * @var array<string>
+     */
+    protected $_virtual = ['title', 'body', 'unread', 'read'];
+
+    /**
      * Getter for the vars-column.
      *
-     * @param string $vars Data.
-     * @return mixed
+     * @param string|null $vars Data.
+     * @return array|string|null
      */
-    protected function _getVars($vars)
+    protected function _getVars(?string $vars): array|string|null
     {
         $array = json_decode($vars, true);
 
@@ -58,14 +51,12 @@ class Notification extends Entity
     }
 
     /**
-     * _setVars
-     *
      * Setter for the vars-column
      *
-     * @param array $vars Data.
-     * @return string
+     * @param array|string|null $vars Data.
+     * @return string|null
      */
-    protected function _setVars($vars)
+    protected function _setVars(array|string|null $vars): ?string
     {
         if (is_array($vars)) {
             return json_encode($vars);
@@ -75,85 +66,73 @@ class Notification extends Entity
     }
 
     /**
-     * _getTitle
+     * Helper method to check if a string is valid JSON
      *
+     * @param string $string The string to check
+     * @return bool
+     */
+    private function isJson(string $string): bool
+    {
+        json_decode($string);
+        return json_last_error() === JSON_ERROR_NONE;
+    }
+
+    /**
      * Getter for the title.
      * Data is used from the vars-column.
      * The template is used from the configurations.
      *
      * @return string
      */
-    protected function _getTitle()
+    protected function _getTitle(): string
     {
         $templates = Configure::read('Notifier.templates');
+        $template = $this->template ?? '';
 
-        if (array_key_exists($this->_properties['template'], $templates)) {
-            $template = $templates[$this->_properties['template']];
-
-            $vars = json_decode($this->_properties['vars'], true);
-
-            return Text::insert($template['title'], $vars);
+        if (isset($templates[$template])) {
+            $vars = json_decode($this->vars, true);
+            return Text::insert($templates[$template]['title'], $vars);
         }
+
         return '';
     }
 
     /**
-     * _getBody
-     *
      * Getter for the body.
      * Data is used from the vars-column.
      * The template is used from the configurations.
      *
      * @return string
      */
-    protected function _getBody()
+    protected function _getBody(): string
     {
         $templates = Configure::read('Notifier.templates');
-
-        if (array_key_exists($this->_properties['template'], $templates)) {
-            $template = $templates[$this->_properties['template']];
-
-            $vars = json_decode($this->_properties['vars'], true);
-
-            return Text::insert($template['body'], $vars);
+        $template = $this->template ?? '';
+        if (isset($templates[$template])) {
+            $vars = json_decode($this->vars, true);
+            return Text::insert($templates[$template]['body'], $vars);
         }
+
         return '';
     }
 
     /**
-     * _getUnread
-     *
-     * Boolean if the notification is read or not.
+     * Boolean if the notification is unread.
      *
      * @return bool
      */
-    protected function _getUnread()
+    protected function _getUnread(): bool
     {
-        if ($this->_properties['state'] === 1) {
-            return true;
-        }
-        return false;
+        return ($this->_properties['state'] ?? 0) === 1;
     }
 
     /**
-     * _getRead
-     *
-     * Boolean if the notification is read or not.
+     * Boolean if the notification is read.
      *
      * @return bool
      */
-    protected function _getRead()
+    protected function _getRead(): bool
     {
-        if ($this->_properties['state'] === 0) {
-            return true;
-        }
-        return false;
+        return ($this->_properties['state'] ?? 1) === 0;
     }
-
-    /**
-     * Virtual fields
-     *
-     * @var array
-     */
-    protected $_virtual = ['title', 'body', 'unread', 'read'];
 }

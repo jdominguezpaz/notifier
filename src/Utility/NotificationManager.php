@@ -62,14 +62,14 @@ class NotificationManager
         }
 
         foreach ((array)$data['users'] as $user) {
-            $entity = $model->newEntity([
-                'template' => $data['template'],
-                'tracking_id' => $data['tracking_id'],
-                'vars' => $data['vars'],
-                'state' => 1,
-                'user_id' => $user
-            ], ['validate' => false]);
+            $entity = $model->newEmptyEntity();
 
+            $entity->set('template', $data['template']);
+            $entity->set('tracking_id', $data['tracking_id']);
+            $entity->set('vars', $data['vars']);
+            $entity->set('state', 1);
+            $entity->set('user_id', $user);
+            $entity->set('unread', 1);
             $model->save($entity);
         }
 
