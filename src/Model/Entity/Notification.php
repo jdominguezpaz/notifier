@@ -123,7 +123,10 @@ class Notification extends Entity
      */
     protected function _getUnread(): bool
     {
-        return ($this->_properties['state'] ?? 0) === 1;
+        if ($this->state === true) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -133,6 +136,9 @@ class Notification extends Entity
      */
     protected function _getRead(): bool
     {
-        return ($this->_properties['state'] ?? 1) === 0;
+        if ($this->state === false) {
+            return true;
+        }
+        return false;
     }
 }

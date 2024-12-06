@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * Bakkerij (https://github.com/bakkerij)
  * Copyright (c) https://github.com/bakkerij
@@ -17,17 +19,19 @@ namespace Bakkerij\Notifier\Controller\Component;
 use Bakkerij\Notifier\Utility\NotificationManager;
 use Cake\Controller\Component;
 use Cake\Core\Configure;
-use Cake\ORM\TableRegistry;
+use Cake\ORM\Locator\LocatorAwareTrait;
 
 /**
  * Notifier component
  */
 class NotifierComponent extends Component
 {
+    use LocatorAwareTrait;
+
     /**
      * Default configuration.
      *
-     * @var array
+     * @var array<string, mixed>
      */
     protected $_defaultConfig = [
         'UsersModel' => 'Users'
@@ -38,19 +42,19 @@ class NotifierComponent extends Component
      *
      * @var \Cake\Controller\Controller
      */
-    private $Controller = null;
+    private $Controller;
 
     /**
      * initialize
      *
-     * @param array $config Config.
+     * @param array<string, mixed> $config Config.
      * @return void
      */
-    public function initialize(array $config)
+    public function initialize(array $config): void
     {
         parent::initialize($config);
 
-        $this->Controller = $this->_registry->getController();
+        $this->Controller = $this->getController();
     }
 
     /**
@@ -61,7 +65,7 @@ class NotifierComponent extends Component
      * @param \Cake\Controller\Controller $controller Controller.
      * @return void
      */
-    public function setController($controller)
+    public function setController($controller): void
     {
         $this->Controller = $controller;
     }
@@ -91,17 +95,16 @@ class NotifierComponent extends Component
      * @param bool|null $state The state of notifications: `true` for unread, `false` for read, `null` for all.
      * @return array
      */
-    public function getNotifications($userId = null, $state = null)
+    public function getNotifications(?int $userId = null, ?bool $state = null): array
     {
         if (!$userId) {
-            $userId = $this->Controller->Auth->user('id');
+            $userId = $this->Controller->Authentication->getIdentity()->get('id');
         }
-
-        $model = TableRegistry::get('Bakkerij/Notifier.Notifications');
+        $model = $this->getTableLocator()->get('Bakkerij/Notifier.Notifications');
 
         $query = $model->find()->where(['Notifications.user_id' => $userId])->order(['created' => 'desc']);
 
-        if (!is_null($state)) {
+        if ($state !== null) {
             $query->where(['Notifications.state' => $state]);
         }
 
@@ -133,17 +136,17 @@ class NotifierComponent extends Component
      * @param bool|null $state The state of notifications: `true` for unread, `false` for read, `null` for all.
      * @return int
      */
-    public function countNotifications($userId = null, $state = null)
+    public function countNotifications(?int $userId = null, ?bool $state = null): int
     {
         if (!$userId) {
-            $userId = $this->Controller->Auth->user('id');
+            $userId = $this->Controller->Authentication->getIdentity()->get('id');
         }
 
-        $model = TableRegistry::get('Bakkerij/Notifier.Notifications');
+        $model = $this->getTableLocator()->get('Bakkerij/Notifier.Notifications');
 
         $query = $model->find()->where(['Notifications.user_id' => $userId]);
 
-        if (!is_null($state)) {
+        if ($state !== null) {
             $query->where(['Notifications.state' => $state]);
         }
 
@@ -156,28 +159,27 @@ class NotifierComponent extends Component
      * Used to mark a notification as read.
      * If no notificationId is given, all notifications of the chosen user will be marked as read.
      *
-     * @param int $notificationId Id of the notification.
+     * @param int|null $notificationId Id of the notification.
      * @param int|null $user Id of the user. Else the id of the session will be taken.
      * @return void
      */
-    public function markAsRead($notificationId = null, $user = null)
+    public function markAsRead(?int $notificationId = null, ?int $user = null): void
     {
         if (!$user) {
-            $user = $this->Controller->Auth->user('id');
+            $user = $this->Controller->Authentication->getIdentity()->get('id');
         }
 
-        $model = TableRegistry::get('Bakkerij/Notifier.Notifications');
+        $model = $this->getTableLocator()->get('Bakkerij/Notifier.Notifications');
 
         if (!$notificationId) {
-            $query = $model->find('all')->where([
+            $query = $model->find()->where([
                 'user_id' => $user,
                 'state' => 1
             ]);
         } else {
-            $query = $model->find('all')->where([
+            $query = $model->find()->where([
                 'user_id' => $user,
                 'id' => $notificationId
-
             ]);
         }
 
@@ -211,10 +213,10 @@ class NotifierComponent extends Component
      *  ]);
      * ```
      *
-     * @param array $data Data with options.
+     * @param array<string, mixed> $data Data with options.
      * @return string
      */
-    public function notify($data)
+    public function notify(array $data): string
     {
         return NotificationManager::instance()->notify($data);
     }
