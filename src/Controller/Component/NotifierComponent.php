@@ -161,9 +161,9 @@ class NotifierComponent extends Component
      *
      * @param int|null $notificationId Id of the notification.
      * @param int|null $user Id of the user. Else the id of the session will be taken.
-     * @return void
+     * @return array
      */
-    public function markAsRead(?int $notificationId = null, ?int $user = null): void
+    public function markAsRead(?int $notificationId = null, ?int $user = null): array
     {
         if (!$user) {
             $user = $this->Controller->Authentication->getIdentity()->get('id');
@@ -187,6 +187,7 @@ class NotifierComponent extends Component
             $item->set('state', 0);
             $model->save($item);
         }
+        return $query->toArray();
     }
 
     /**
