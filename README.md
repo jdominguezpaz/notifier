@@ -1,11 +1,31 @@
 # Notifier plugin for CakePHP
 
-[![Travis](https://img.shields.io/travis/bakkerij/notifier.svg?style=flat-square)](https://travis-ci.org/bakkerij/notifier) 
+[![Travis](https://img.shields.io/travis/bakkerij/notifier.svg?style=flat-square)](https://travis-ci.org/bakkerij/notifier)
 [![Packagist](https://img.shields.io/packagist/dt/cakemanager/cakephp-notifier.svg?style=flat-square)](https://packagist.org/packages/bakkerij/notifier)
 [![Packagist](https://img.shields.io/packagist/v/bakkerij/notifier.svg?style=flat-square)](https://packagist.org/packages/bakkerij/notifier)
 [![Gitter](https://img.shields.io/gitter/room/bakkerij/notifier.js.svg?style=flat-square)](https://gitter.im/bakkerij/notifier)
 
-This plugin allows you to integrate a simple notification system into your application. 
+This plugin allows you to integrate a simple notification system into your application.
+
+## Compatibility
+
+| Notifier Version | CakePHP Version | PHP Version | Branch     | Status      |
+|-----------------|-----------------|-------------|------------|-------------|
+| 3.x             | 3.10+           | >=5.4.16    | cakephp3   | Maintained  |
+| 4.x             | 4.x             | >=7.4       | cakephp4   | Active      |
+
+**Installation by CakePHP version:**
+
+For CakePHP 3.x projects:
+```bash
+composer require jdominguezpaz/notifier:~3.2.3
+```
+
+For CakePHP 4.x projects:
+```bash
+composer require jdominguezpaz/notifier:~4.0.2
+```
+
 
 ## Installation
 
@@ -81,10 +101,10 @@ You can register them with:
 ```php
     $notificationManager->addRecipientList('administrators', [1,2,3,4]);
 ```
-    
+
 Now we have created a list of recipients called `administrators`.
 
-This can be used later on when we send a new notification: 
+This can be used later on when we send a new notification:
 
 ```php
     $notificationManager->notify([
@@ -106,7 +126,7 @@ You can easily retrieve notifications via the `getNotifications` method. Some ex
 
     // getting a list of all notifications of the user with id 2
     $this->Notifier->getNotifications(2);
-    
+
     // getting a list of all unread notifications
     $this->Notifier->allNotificationList(2, true);
 
@@ -124,7 +144,7 @@ Getting counts of read/unread notifications can be done via the `countNotificati
 
     // getting a number of all notifications of the user with id 2
     $this->Notifier->countNotifications(2);
-    
+
     // getting a number of all unread notifications
     $this->Notifier->countNotificationList(2, true);
 
@@ -153,11 +173,11 @@ The following getters can be used at your notifications entity:
 - `read` - Boolean if the notification is read yet.
 
 Example:
-    
+
 ```php
     // returns true or false
     $entity->get('unread');
-    
+
     // returns the full output like 'Bob Mulder has posted a new blog named My Great New Post'
     $entity->get('body');
 ```
