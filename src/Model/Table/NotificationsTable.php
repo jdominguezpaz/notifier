@@ -43,11 +43,11 @@ class NotificationsTable extends Table
     {
         $validator
             ->integer('id')
-            ->allowEmptyString('id', null, 'create')
+            ->allowEmptyFor('id', 'create')
             ->allowEmptyString('title')
             ->allowEmptyString('body')
             ->boolean('state')
-            ->allowEmptyString('state');
+            ->allowEmptyFor('state', null);
 
         return $validator;
     }
