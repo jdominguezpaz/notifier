@@ -39,9 +39,11 @@ class NotificationsTable extends Table
      */
     public function initialize(array $config)
     {
-        $this->table('notifications');
-        $this->displayField('title');
-        $this->primaryKey('id');
+        parent::initialize($config);
+
+        $this->setTable('notifications');
+        $this->setDisplayField('title');
+        $this->setPrimaryKey('id');
         $this->addBehavior('Timestamp');
     }
 
@@ -54,12 +56,12 @@ class NotificationsTable extends Table
     public function validationDefault(Validator $validator)
     {
         $validator
-            ->add('id', 'valid', ['rule' => 'numeric'])
-            ->allowEmpty('id', 'create')
-            ->allowEmpty('title')
-            ->allowEmpty('body')
-            ->add('state', 'valid', ['rule' => 'numeric'])
-            ->allowEmpty('state');
+            ->integer('id')
+            ->allowEmptyString('id', null, 'create')
+            ->allowEmptyString('title')
+            ->allowEmptyString('body')
+            ->boolean('state')
+            ->allowEmptyString('state');
 
         return $validator;
     }
